@@ -1,0 +1,176 @@
+#!/usr/bin/env ruby
+
+require "json"
+require "open3"
+require "shellwords"
+require "tmpdir"
+require_relative "lib/nix"
+require_relative "lib/yixe"
+
+NIX_PREFIX ||= "".freeze()
+NIX_SHELL ||=
+  if NIX_PREFIX == ""
+    "nix-shell"
+  else
+    File.join(NIX_PREFIX, "nix-shell")
+  end
+    .freeze()
+
+# FIXME: implement into a class, to also allow commands to depend on behaviour from other commands.
+
+def usage(io: $stdout)
+  io.puts <<~EOF
+    Usage: yixe <command>
+
+    Commands:
+       transpile  <document>
+         Transpile a document to Nix.
+       lock <document>
+         Update a document's locks.
+       project shell <document>
+         Launches a project's `shell` attribute.
+       build <document> [attribute]
+         Builds an output. The `attribute` argument is mandatory for documents with mutiple outputs.
+
+  EOF
+end
+
+def error(message, code: 1, with_usage: true)
+  $stderr.puts "Error: #{message}\n\n"
+  usage(io: $stderr) if with_usage
+  exit(code)
+end
+
+begin
+  # `arguments` holds a list of arguments, with the preceding options.
+  arguments = ARGV
+    .slice_when { |el, _| !el.match(/^-/) }
+    .map do |args|
+      [args.pop, args || []]
+    end
+
+  command, options = arguments.shift
+
+  error("No command given...") unless command
+
+  # FIXME: actually parse options.
+  error("No options implemented yet") if options.length.positive?
+
+  case command
+  when "lock"
+    path, command_options = arguments.shift
+
+    error("No document given for the lock command", with_usage: false) unless path
+
+    # FIXME: actually parse [no] options.
+    error("No options for lock") if command_options.length.positive?
+
+    doc = File.read(path)
+    doc = Yixe::Document.new(doc, path: path)
+    puts doc.update_locks()
+  when "transpile"
+    path, command_options = arguments.shift
+
+    error("No document given for transpile", with_usage: false) unless path
+
+    # FIXME: actually parse [no] options.
+    error("No options for transpile") if command_options.length.positive?
+
+    doc = File.read(path)
+    doc = Yixe::Document.new(doc, path: path)
+    puts doc.to_nix
+  when "project"
+    subcommand, _subcommand_options = arguments.shift
+
+    case subcommand
+    when "shell"
+      path, _command_options = arguments.shift
+
+      error("No document given for shell", with_usage: false) unless path
+
+      doc = File.read(path)
+      doc = Yixe::Document.new(doc, path: path)
+      doc.resolve_paths!()
+
+      code =
+        Nix::Raw.new(
+          <<~EOF,
+            (#{doc.to_nix}).shell
+          EOF
+        ).to_nix()
+
+      Dir.mktmpdir("yixe.shell") do |dir|
+        temp_file = File.join(dir, "shell.nix")
+        File.write(temp_file, code)
+        system(NIX_SHELL, temp_file)
+      end
+    else
+      error("Command #{command.inspect} unknown.")
+    end
+  when "build"
+    path, _command_options = arguments.shift
+    error("No document given for build", with_usage: false) unless path
+
+    doc = File.read(path)
+    doc = Yixe::Document.new(doc, path: path)
+    doc.resolve_paths!()
+
+    cmd = [
+      "nix-build",
+      "-",
+    ]
+
+    known_attributes = doc.root.get("outputs")&.keys
+    attribute, _command_options = arguments.shift
+    cmd.push("--attr", attribute) if known_attributes
+
+    if ["yixe-nixos-module"].include?(doc.document_type)
+      error(
+        "A #{doc.document_type.inspect} document cannot be directly built.\nIt must be imported or used in another document to make sense.",
+        with_usage: false,
+      )
+    end
+
+    unless ["yixe-expression", "yixe-nixpkgs-package"].include?(doc.document_type)
+      known_attributes_text =
+        if known_attributes
+          known_attributes
+            .sort()
+            .map { " - #{_1}" }
+            .join("\n")
+        else
+          "(No known attributes...)"
+        end
+
+      error("No attribute given for build.\nKnown attributes:\n#{known_attributes_text}", with_usage: false) unless attribute
+    end
+
+    if known_attributes && !known_attributes.include?(attribute)
+      error("Attribute #{attribute.inspect} not found in document #{path.inspect}.", with_usage: false)
+    elsif !known_attributes && attribute
+      error("Attribute given (#{attribute.inspect}) while this document (#{path.inspect}) has a single output.", with_usage: false)
+    end
+
+    code = doc.to_nix()
+
+    if doc.root.get("arguments")
+      $stderr.puts "NOTE: Using ambient `<nixpkgs>` for this build."
+      code = <<~EOF
+        (import <nixpkgs> {}).callPackage
+        #{code}
+        {}
+      EOF
+    end
+
+    Open3.pipeline_w(cmd.shelljoin) do |stdin, wait_threads|
+      stdin.write(code)
+      stdin.close()
+      wait_threads.each(&:join)
+    end
+  else
+    error("Command #{command.inspect} unknown.")
+  end
+rescue Yixe::YixeDocumentError => e
+  $stderr.puts(e.message)
+  exit(1)
+end

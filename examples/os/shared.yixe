@@ -1,0 +1,69 @@
+yixe-nixos-module: v0
+
+arguments:
+  - pkgs
+  - config
+  - ...
+
+imports:
+  - config:
+      services:
+        getty:
+          autologinUser: yixe
+      environment:
+        etc:
+          issue:
+            # NOTE: since using `\e` is wanted, we need to use a quoted string...
+            text: "\e[H\e[J\e[999B  This is Yixe OS!\n    Built with the infinite powers of cloud-native technologies!\n      \e[1;36mWhere do you want to go today?\e[0m\n\n\n"
+
+
+config:
+  documentation:
+    nixos:
+      enable: false
+  system:
+    stateVersion: 25.04
+    nixos:
+      distroName: Yixe OS!
+      label: yixe.2025.04.01
+  nix:
+    package: !arguments.pkgs.lix
+  environment:
+    systemPackages:
+      - !arguments.pkgs.wget
+      - !arguments.pkgs.curl
+      - !arguments.pkgs.htop
+      - !arguments.pkgs.neovim
+  users:
+    users:
+      yixe:
+        isNormalUser: true
+        extraGroups:
+          - wheel
+          - networkmanager
+          - video
+        # Allow the graphical user to login without password
+        initialHashedPassword: ""
+  programs:
+    bash:
+      promptInit: |
+        _np() {
+          printf '\[%s\]' "$@"
+        }
+        _red() {
+          printf '\[\033[1;31m\]%s\033[0m\]\]' "$@"
+        }
+        PROMPT_DIRTRIM=2
+        PROMPT_COMMAND="${PROMPT_COMMAND:-}"'__exit_status=$?; [[ $__exit_status -eq 0 ]] && unset __error || __error=" ($__exit_status)"'
+        PS1='\n'
+        PS1+=' Yixe!'
+        PS1+=' -> \w'
+        PS1+="$(_red '${__error}')"
+        PS1+=' >>'
+        PS1+=' '
+
+        unset -f _np
+        unset -f _red
+
+
+# vim: ft=yaml

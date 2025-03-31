@@ -1,0 +1,14 @@
+inherit_from: ../.rubocop.yml
+
+Style/RedundantPercentQ:
+  Enabled: false
+Style/PercentLiteralDelimiters:
+  Enabled: false
+Style/RegexpLiteral:
+  Enabled: false
+Style/MethodCallWithoutArgsParentheses:
+  Enabled: false
+Layout/HeredocIndentation:
+  Enabled: false
+Naming/HeredocDelimiterNaming:
+  Enabled: false

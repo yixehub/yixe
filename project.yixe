@@ -1,0 +1,43 @@
+yixe-project: v0
+
+inputs:
+  sources:
+    nixpkgs: { npins: { channel: nixos-unstable } }
+
+outputs:
+  # This is the expected output of this project.
+  yixe: !yixe.import-document ./package.yixe
+  # This is a shell for developing the project.
+  shell: !project.shell
+    packages:
+      - npins
+      - rubocop
+      - yamllint
+      - !call
+        - !inputs.nixpkgs.callPackage
+        - ./support/nix/customized-ruby.nix
+        - {}
+    mkShell:
+      shellHook: |
+        export PS1="\n <yixe-shell> \w $ "
+        echo ""
+        echo " :: Refreshing project.yixe.nix bootstrap..."
+        cp project.yixe.nix project.yixe.nix.old
+        if ! support/tools/update-bootstrap-expressions.sh > /dev/null; then
+          echo "... failed?"
+          exit 1
+        fi
+        if ! diff project.yixe.nix{,.old} > /dev/null; then
+          echo ""
+          echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+          echo "!! Stale data detected, shelling again. !!"
+          echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+          echo ""
+          exec nix-shell
+        fi
+        rm -f project.yixe.nix.old
+
+        echo ""
+        echo " :: Hello! From a yixe-project defined shell!"
+
+# vim: ft=yaml

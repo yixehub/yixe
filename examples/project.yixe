@@ -1,0 +1,10 @@
+yixe-project: v0
+
+inputs:
+  sources:
+    nixpkgs: { npins: { channel: nixos-unstable } }
+
+outputs:
+  hello: !yixe.import-document ./hello.yixe
+
+# vim: ft=yaml

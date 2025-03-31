@@ -1,0 +1,12 @@
+yixe-nixos-fleet: v0
+
+inputs:
+  sources:
+    nixpkgs: { npins: { channel: nixos-unstable } }
+
+# This can be ran using:
+# yixe build examples/os/fleet.yixe test-vm && result/bin/run-yixe-os-vm
+outputs:
+  test-vm: !fleet.vm ./configuration.yixe
+
+# vim: ft=yaml

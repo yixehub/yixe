@@ -1,0 +1,128 @@
+AllCops:
+  NewCops: enable
+  Exclude:
+    - 'result/**/*'
+    - 'result-*/**/*'
+
+Lint/EmptyClass:
+  AllowComments: true
+
+Lint/InterpolationCheck:
+  Enabled: false
+
+Lint/MissingCopEnableDirective:
+  Enabled: false
+
+Lint/MissingSuper:
+  Enabled: false
+
+Lint/OrAssignmentToConstant:
+  Enabled: false
+
+Layout/LineLength:
+  Enabled: false
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+Layout/SpaceAroundEqualsInParameterDefault:
+  EnforcedStyle: no_space
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/BlockNesting:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Naming/HeredocDelimiterNaming:
+  Enabled: false
+
+Naming/MethodParameterName:
+  Enabled: false
+
+Naming/ConstantName:
+  Enabled: false
+
+Naming/MethodName:
+  AllowedPatterns:
+    - '^visit_Psych_'
+
+Style/AccessModifierDeclarations:
+  Enabled: false
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Style/Encoding:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/MethodCallWithoutArgsParentheses:
+  Enabled: false
+
+Style/DefWithParentheses:
+  Enabled: false
+
+Style/StderrPuts:
+  Enabled: false
+
+Style/CommentAnnotation:
+  Keywords: [ TODO, FIXME, OPTIMIZE, HACK, REVIEW, NOTE ]
+
+Style/EmptyMethod:
+  EnforcedStyle: expanded
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/AccessorGrouping:
+  EnforcedStyle: separated
+
+Style/WordArray:
+  EnforcedStyle: brackets
+
+Style/RegexpLiteral:
+  EnforcedStyle: mixed
+
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    "default": "()"
+    "%i": "[]"
+    "%I": "[]"
+    "%w": "[]"
+    "%W": "[]"
+    "%r": "{}"
+
+Style/Documentation:
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'

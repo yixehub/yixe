@@ -1,0 +1,10 @@
+yixe-nixos-module: v0
+
+imports:
+  - ./shared.yixe
+
+config:
+  networking:
+    hostName: yixe-os
+
+# vim: ft=yaml

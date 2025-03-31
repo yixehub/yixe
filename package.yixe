@@ -1,0 +1,19 @@
+yixe-nixpkgs-package: v0
+
+arguments:
+  - lib
+  - ruby
+  - npins
+  - lix
+
+output:
+  name: yixe
+  version: 0-unstable-2025-04-01
+  # TODO: use !lib promotion
+  src: !nix lib.cleanSource ./.
+  environment:
+    ruby: !arguments.ruby
+    npins: !arguments.npins
+    nix: !arguments.lix
+
+# vim: ft=yaml
